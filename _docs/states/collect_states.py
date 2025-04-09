@@ -51,6 +51,7 @@ async def take_screenshot(browser_context: BrowserContext, output_path: pathlib.
 
 async def save_state(browser_context: BrowserContext, page: Page, output_path: pathlib.Path):
     output_path.mkdir(parents=True, exist_ok=True)
+    await remove_highlights(page)
     await take_screenshot(browser_context, output_path / 'screenshot_original.png')
     state = await browser_context.get_state()
     with open(output_path / 'state.json', 'w') as f: f.write(str(state))
@@ -141,7 +142,8 @@ if __name__ == '__main__':
     odir = pathlib.Path(__file__).parent / 'states'
     odir.mkdir(parents=True, exist_ok=True)
     for url in [
-        "https://www.baidu.com/",
+        "https://baijiahao.baidu.com/s?id=1828909823021391304&wfr=spider&for=pc"
+        # "https://www.baidu.com/",
         # "https://www.mydown.com/",
         # "https://weixin.qq.com/",
         # "https://guanjia.qq.com/",
