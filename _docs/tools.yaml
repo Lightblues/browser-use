@@ -1,0 +1,134 @@
+meta:
+  NOTE: see @QBAgentsExtension
+  version: 0.0.1
+  date: 2025-04-07
+  description: |
+    浏览器 MCP 的提供的工具描述 1) 工具描述有问题; 2) 缺少参数描述. 因此在这一版中尝试修复. 
+    修改点:
+    1) 对于 browser-use 中的工具, 复用工具描述, 新增参数描述; https://github.com/Lightblues/browser-use/blob/eason/browser_use/controller/service.py
+    2) 对于我们新增的工具, 保留 @ian 提供的工具描述;
+    3) 合并 scroll_to_text 和 find_text_on_page;
+    4) 其他需要确认的参见注释. 
+  links:
+    - updated: https://doc.weixin.qq.com/sheet/e3_AcMATAZtAPII4u4yUoYRm0eRUbRnL?scode=AJEAIQdfAAoAUn0cbGAcMATAZtAPI&tab=uvpjf6
+    - original: https://doc.weixin.qq.com/sheet/e3_AMwAVAbaACkCEj35th2Qge1HXsZJ1?scode=AJEAIQdfAAohWfLktYAcMATAZtAPI&tab=srcdmd
+
+tools:
+  - name: go_to_url
+    description: Navigate to URL in the current tab
+    parameters:
+      - name: url
+        type: string
+        description: The URL to navigate to.
+  - name: go_back
+    description: Go back to the previous page in the browser.
+  - name: wait
+    description: Wait for x seconds, default 3
+    parameters:
+      - name: seconds
+        type: integer
+        description: The number of seconds to wait.
+  - name: click_element
+    description: Click on an element in the current tab, by index or xpath
+    parameters:
+      - name: index
+        type: integer
+        description: The index of the element to click.
+      - name: xpath
+        type: string
+        description: The XPath of the element to click.
+    # NOTE: 这一点需要确认一下, BU 里面是分两个工具的? required 字段填啥? 
+  - name: input_text
+    description: Input text into a input interactive element
+    parameters:
+      - name: index
+        type: integer
+        description: The index of the input element to interact with.
+      - name: text
+        type: string
+        description: The text to input into the input element.
+      - name: xpath
+        type: string
+        description: The XPath of the input element to interact with.
+  - name: switch_tab
+    description: Switch to a specific tab by page ID
+    parameters:
+      - name: page_id
+        type: integer
+        description: The ID of the tab to switch to.
+  - name: open_tab
+    description: Open url in new tab
+    parameters:
+      - name: url
+        type: string
+        description: The URL to open in the new tab.
+  - name: extract_content
+    description: Extract page content to retrieve specific information from the page, e.g. all company names, a specific description, all information about, links with companies in structured format or simply links
+    parameters:
+      - name: goal
+        type: string
+        description: The goal of the extraction.
+    # NOTE: 需要跟浏览器侧确认这个工具的实现逻辑
+  - name: scroll_down
+    description: Scroll down the page by pixel amount - if no amount is specified, scroll down one page
+    parameters:
+      - name: amount
+        type: integer
+        description: The number of pixels to scroll down.
+  - name: scroll_up
+    description: Scroll up the page by pixel amount - if no amount is specified, scroll up one page
+    parameters:
+      - name: amount
+        type: integer
+        description: The number of pixels to scroll up.
+  - name: send_keys
+    description: Send strings of special keys like Escape,Backspace, Insert, PageDown, Delete, Enter, Shortcuts such as `Control+o`, `Control+Shift+T` are supported as well. This gets used in keyboard.press.
+    parameters:
+      - name: keys
+        type: string
+        description: The keys to send.
+  - name: scroll_to_text
+    # description: If you dont find something which you want to interact with, scroll to it
+    description: Searches for the specified text on the current webpage and scrolls to its location. If the function is called multiple times with the same text, it will navigate to the next occurrence of the text on subsequent calls.
+    parameters:
+      - name: text
+        type: string
+        description: The text to scroll to.
+  - name: get_dropdown_options
+    description: Get all options from a native dropdown
+    parameters:
+      - name: index
+        type: integer
+        description: The index of the dropdown element.
+  - name: select_dropdown_option
+    description: Select dropdown option for interactive element index by the text of the option you want to select
+    parameters:
+      - name: index
+        type: integer
+        description: The index of the dropdown element.
+      - name: text
+        type: string
+        description: The text of the option you want to select.
+  - name: done
+    description: Complete task - with return text and if the task is finished (success=True) or not yet completely finished (success=False), because last step is reached
+    parameters:
+      - name: success
+        type: boolean
+        description: Whether the task is finished or not.
+      - name: text
+        type: string
+        description: The return text of the task. 
+        # NOTE: 这个字段在BU里面本来是一个结构体, 这里是否需要存疑?
+  # - name: find_text_on_page
+  #   description: Searches for the specified text on the current webpage and scrolls to its location. If the function is called multiple times with the same text, it will navigate to the next occurrence of the text on subsequent calls.
+  # NOTE: 功能上和 scroll_to_text 重叠, 可以合并
+  - name: scroll_to_bottom
+    description: Scrolls the current webpage to the bottom. This can be useful for loading additional content on infinite scrolling pages or for reaching the footer quickly.
+  - name: scroll_to_top
+    description: Scrolls the current webpage to the top. This is useful for quickly returning to the beginning of the page.
+  - name: download_file
+    description: Download a file with the given index ID. It returns the whether start downloadeding.
+    parameters:
+      - name: index
+        type: integer
+        description: The index of the file to download.
