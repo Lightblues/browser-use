@@ -51,12 +51,13 @@ async def take_screenshot(browser_context: BrowserContext, output_path: pathlib.
 
 async def save_state(browser_context: BrowserContext, page: Page, output_path: pathlib.Path):
     output_path.mkdir(parents=True, exist_ok=True)
-    await remove_highlights(page)
     await take_screenshot(browser_context, output_path / 'screenshot_original.png')
     state = await browser_context.get_state()
     with open(output_path / 'state.json', 'w') as f: f.write(str(state))
     user_message = get_user_message(state)
     with open(output_path / 'user_message.txt', 'w') as f: f.write(user_message)
+    interactive_message = get_interactive_message(state)
+    with open(output_path / 'screenshot_original.rec', 'w') as f: f.write(interactive_message)
     await get_highlighted_elements(page)
     await take_screenshot(browser_context, output_path / 'screenshot_highlight.png')
 
@@ -65,7 +66,7 @@ async def task(url: str, output_path: pathlib.Path):
     browser = Browser(
         config=BrowserConfig(
             headless=False, # True,
-            chrome_instance_path='/Applications/Chromium.app/Contents/MacOS/Chromium',
+            chrome_instance_path='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         )
     )  # True
     async with BrowserContext(browser=browser) as browser_context:
@@ -90,6 +91,7 @@ include_attributes = [
     'value',
     'alt',
     'aria-expanded',
+    'rect',
 ]
 
 def get_user_message(state: BrowserState) -> str:
@@ -137,13 +139,15 @@ Interactive elements from top layer of the current page inside the viewport:
     return state_description
 
 
+def get_interactive_message(state: BrowserState) -> str:
+    elements_text = state.element_tree.clickable_elements_to_rect(include_attributes=include_attributes)
+    return elements_text
 
 if __name__ == '__main__':
     odir = pathlib.Path(__file__).parent / 'states'
     odir.mkdir(parents=True, exist_ok=True)
     for url in [
-        "https://baijiahao.baidu.com/s?id=1828909823021391304&wfr=spider&for=pc"
-        # "https://www.baidu.com/",
+        "https://www.baidu.com/",
         # "https://www.mydown.com/",
         # "https://weixin.qq.com/",
         # "https://guanjia.qq.com/",

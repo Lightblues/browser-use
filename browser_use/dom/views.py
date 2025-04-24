@@ -54,6 +54,9 @@ class DOMElementNode(DOMBaseNode):
 	xpath: str
 	attributes: Dict[str, str]
 	children: List[DOMBaseNode]
+	rect: Dict
+	innerHeight: int = -1
+	innerWidth: int = -1
 	is_interactive: bool = False
 	is_top_element: bool = False
 	is_in_viewport: bool = False
@@ -160,6 +163,56 @@ class DOMElementNode(DOMBaseNode):
 				# Add text only if it doesn't have a highlighted parent
 				if not node.has_parent_with_highlight_index() and node.is_visible:  # and node.is_parent_top_element()
 					formatted_text.append(f'{node.text}')
+
+		process_node(self, 0)
+		return '\n'.join(formatted_text)
+	
+	@time_execution_sync('--clickable_elements_to_rec')
+	def clickable_elements_to_rect(self, include_attributes: list[str] | None = None) -> str:
+		"""Convert the processed DOM content to HTML."""
+		formatted_text = []
+
+		def process_node(node: DOMBaseNode, depth: int) -> None:
+			if isinstance(node, DOMElementNode):
+				# Add element with highlight_index
+				if node.highlight_index is not None:
+					if node.is_interactive:
+						attributes_str = ''
+						text = node.get_all_text_till_next_clickable_element()
+						if include_attributes:
+							attributes = list(
+								set(
+									[
+										str(value)
+										for key, value in node.attributes.items()
+										if key in include_attributes and value != node.tag_name
+									]
+								)
+							)
+							if text in attributes:
+								attributes.remove(text)
+							attributes_str = ';'.join(attributes)
+						line = f'[{node.highlight_index}]<{node.tag_name} '
+						if attributes_str:
+							line += f'{attributes_str}'
+						if text:
+							if attributes_str:
+								line += f'>{text}'
+							else:
+								line += f'{text}'
+						line += '/>'
+						line = line.replace('\n', ' ')
+						line += ' ' + str(int(node.rect['x']) * 2) + ' ' + str(int(node.rect['y']) * 2) + ' ' + str(int(node.rect['x'] + node.rect['width']) * 2) + ' ' + str(int(node.rect['y'] + node.rect['height']) * 2) + ' 0'
+						formatted_text.append(line)
+
+				# Process children regardless
+				for child in node.children:
+					process_node(child, depth + 1)
+
+			elif isinstance(node, DOMTextNode):
+				# Add text only if it doesn't have a highlighted parent
+				if not node.has_parent_with_highlight_index() and node.is_visible:  # and node.is_parent_top_element()
+					print('')
 
 		process_node(self, 0)
 		return '\n'.join(formatted_text)

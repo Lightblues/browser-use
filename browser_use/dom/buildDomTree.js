@@ -883,6 +883,9 @@
         attributes: {},
         xpath: '/body',
         children: [],
+        rect: node.getBoundingClientRect(),
+        innerHeight: window.innerHeight,
+        innerWidth: window.innerWidth,
       };
 
       // Process children of body
@@ -962,6 +965,9 @@
       attributes: {},
       xpath: getXPathTree(node, true),
       children: [],
+      rect: node.getBoundingClientRect(),
+      innerHeight: window.innerHeight,
+      innerWidth: window.innerWidth,
     };
 
     // Get attributes for interactive elements or potential text containers
