@@ -1,3 +1,4 @@
+import uuid
 from typing import Any, Optional
 from pydantic import BaseModel
 from dataclasses import dataclass, field
@@ -102,7 +103,62 @@ class ProxySettings(TypedDict, total=False):
     username: Optional[str]
     password: Optional[str]
 
+@dataclass
+class BrowserContextState:
+	target_id: str | None = None  # CDP target ID
+
 class BrowserContext:
+	def __init__(self, browser: 'Browser', config: BrowserContextConfig | None = None, state: Optional[BrowserContextState] = None,):
+		self.context_id = str(uuid.uuid4())
+		self.config = config or BrowserContextConfig(**(browser.config.model_dump() if browser.config else {}))
+		self.browser = browser
+		self.state = state or BrowserContextState()
+		# Initialize these as None - they'll be set up when needed
+		self.session: BrowserSession | None = None
+		self.active_tab: Page | None = None
+	async def __aenter__(self):
+		"""Async context manager entry"""
+		await self._initialize_session()
+		return self
+	async def __aexit__(self, exc_type, exc_val, exc_tb):
+		"""Async context manager exit"""
+		await self.close()
+
+	async def _initialize_session(self):
+		"""Initialize the browser session"""
+		playwright_browser = await self.browser.get_playwright_browser()
+		context = await self._create_context(playwright_browser)
+		pages = context.pages
+		self.session = BrowserSession(context=context, cached_state=None)
+		...
+	async def _create_context(self, browser: PlaywrightBrowser):
+		"""Creates a new browser context with anti-detection measures and loads cookies if available."""
+		context = await browser.new_context(
+			no_viewport=True,
+			user_agent=self.config.user_agent,
+			java_script_enabled=True,
+			bypass_csp=self.config.disable_security,
+			ignore_https_errors=self.config.disable_security,
+			record_video_dir=self.config.save_recording_path,
+			record_video_size=self.config.browser_window_size.model_dump(),
+			record_har_path=self.config.save_har_path,
+			locale=self.config.locale,
+			http_credentials=self.config.http_credentials,
+			is_mobile=self.config.is_mobile,
+			has_touch=self.config.has_touch,
+			geolocation=self.config.geolocation,
+			permissions=self.config.permissions,
+			timezone_id=self.config.timezone_id,
+		)
+		return context
+
+	async def close(self):
+		"""Close the browser instance"""
+
+	async def reset_context(self):
+		"""Reset the browser session
+		Call this when you don't want to kill the context but just kill the state """
+
 	async def get_session(self) -> BrowserSession: ...
 	async def get_current_page(self) -> Page: ...
 	async def navigate_to(self, url: str): ...
@@ -112,7 +168,6 @@ class BrowserContext:
 	async def close_current_tab(self): ...
 	async def get_page_html(self) -> str: ...
 	async def execute_javascript(self, script: str): ...
-	@time_execution_sync('--get_state')  # This decorator might need to be updated to handle async
 	async def get_state(self) -> BrowserState: ...
 	async def get_selector_map(self) -> SelectorMap: ...
 	async def get_element_by_index(self, index: int) -> ElementHandle | None: ...
@@ -120,7 +175,7 @@ class BrowserContext:
 	async def save_cookies(self): ...
 	async def is_file_uploader(self, element_node: DOMElementNode, max_depth: int = 3, current_depth: int = 0) -> bool: ...
 	async def get_scroll_info(self, page: Page) -> tuple[int, int]: ...
-	async def reset_context(self): ...
+
 
 @dataclass
 class BrowserContextConfig:

@@ -254,6 +254,19 @@ class AgentStepInfo:
 	max_steps: int
 	def is_last_step(self) -> bool: ...
 
+class Agent(Generic[Context]):
+	def __init__(self):
+		# Initialize memory
+		self.memory = Memory(
+			message_manager=self._message_manager,
+			llm=self.llm,
+			settings=memory_settings,
+		)
+	def step(self):
+		# generate procedural memory if needed
+		if self.settings.enable_memory and self.memory and self.state.n_steps % self.settings.memory_interval == 0:
+			self.memory.create_procedural_memory(self.state.n_steps)
+
 # -----------------------------
 # MessageManager
 # -----------------------------

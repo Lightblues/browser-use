@@ -147,7 +147,8 @@ if __name__ == '__main__':
     odir = pathlib.Path(__file__).parent / 'states'
     odir.mkdir(parents=True, exist_ok=True)
     for url in [
-        "https://www.baidu.com/",
+        "https://ivyleaguecenter.org/2024/10/02/2024-amc-10a-12a-problems-and-answers/",
+        # "https://www.baidu.com/",
         # "https://www.mydown.com/",
         # "https://weixin.qq.com/",
         # "https://guanjia.qq.com/",
